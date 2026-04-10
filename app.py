@@ -111,11 +111,32 @@ PHOTO_GUIDE_SVG = """
 # ── Main App ─────────────────────────────────────────────────────────────────
 def main():
     st.set_page_config(page_title="Vibe to Print", page_icon="\U0001f527", layout="wide")
+
+    # Family login
+    if "user_name" not in st.session_state:
+        st.session_state.user_name = ""
+    if not st.session_state.user_name:
+        st.markdown("## \U0001f527 Vibe to Print")
+        st.markdown("**Photograph something broken. Get help fixing it.**")
+        st.markdown("---")
+        st.markdown("**Sign in so AX knows who you are:**")
+        name = st.text_input("Your name", placeholder="e.g. Dad, Phil, Colin")
+        if name and st.button("Sign In", type="primary"):
+            st.session_state.user_name = name
+            st.rerun()
+        st.stop()
+    user_name = st.session_state.user_name
+
     st.title("\U0001f527 Vibe to Print")
     st.caption("Photograph something broken. Get help fixing it.")
 
-    # Sidebar - simple settings
+    # Sidebar
     with st.sidebar:
+        st.markdown(f"**Signed in as:** {user_name}")
+        if st.button("Sign Out", key="signout"):
+            st.session_state.user_name = ""
+            st.rerun()
+        st.markdown("---")
         st.markdown("### Settings")
         if API_KEY:
             st.success("AI Connected")
@@ -367,7 +388,7 @@ def main():
                 st.markdown(prompt)
             with st.chat_message("assistant", avatar="\U0001f916"):
                 with st.spinner("AX is thinking..."):
-                    resp = chat_with_ax(prompt, history=st.session_state.print_chat)
+                    resp = chat_with_ax(prompt, context=f"You're talking to {user_name}.", history=st.session_state.print_chat)
                     st.markdown(resp)
                     st.session_state.print_chat.append({"role": "assistant", "content": resp})
 
